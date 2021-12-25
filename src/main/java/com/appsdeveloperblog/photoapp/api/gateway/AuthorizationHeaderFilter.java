@@ -18,6 +18,19 @@ import reactor.core.publisher.Mono;
 @Component
 public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
 
+	/*
+	* we're going to create a custom filter class that can be assigned to a specific gateway route
+	 it will be executed before spring cloud API gateway routes HTTP request to a destination microservice.
+	 *
+	 * I will use this filter to check if the request to a certain point does contain JWT token and
+	 * if the provided JWT token has been signed with the correct token secret.
+	 *
+	 * I will use this particular filter to read the authorization header. So I'm calling it authorization header filter
+	 *
+	 * Now that we have a custom filter class created, I will assign it to a specific route for which I want this filter to be executed.
+	* */
+
+
 	@Autowired
 	Environment env;
 
@@ -29,8 +42,13 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 		// Put configuration properties here
 	}
 
+	//this is the function that gets triggered when our authorization header filter gets executed.
+	//And this is where the main business logic is written.
 	@Override
 	public GatewayFilter apply(Config config) {
+
+		//this time the code style that we will write will slightly differ and we will use Java lambdas.
+		//this is because spring Cloud API gateway was created to be non blocking and to support reactive programming.
 		return (exchange, chain) -> {
 
 			ServerHttpRequest request = exchange.getRequest();
@@ -63,8 +81,15 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 		String subject = null;
 
 		try {
-			subject = Jwts.parser().setSigningKey(env.getProperty("token.secret")).parseClaimsJws(jwt).getBody()
+
+			subject = Jwts
+					.parser()//for this parser to be able to parse claims that this JWT token contains,
+					// we will need to set the signing key with which this JWT token was signed when it was initially created
+					.setSigningKey(env.getProperty("token.secret"))//
+					.parseClaimsJws(jwt)
+					.getBody()
 					.getSubject();
+
 		} catch (Exception ex) {
 			returnValue = false;
 		}

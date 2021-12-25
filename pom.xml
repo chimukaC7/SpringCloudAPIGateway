@@ -45,6 +45,7 @@
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
+			<!-- I will delete the version and let it be managed by Spring boot. -->
 		</dependency>
 
 
